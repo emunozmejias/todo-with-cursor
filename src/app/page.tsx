@@ -1,65 +1,179 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Trash2, Edit2, Check, X, Plus } from "lucide-react"
+
+interface Todo {
+  id: number
+  text: string
+  completed: boolean
+}
+
+export default function TodoApp() {
+  const [todos, setTodos] = useState<Todo[]>([])
+  const [inputValue, setInputValue] = useState("")
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editingText, setEditingText] = useState("")
+
+  // Add new todo
+  const addTodo = () => {
+    if (inputValue.trim()) {
+      const newTodo: Todo = {
+        id: Date.now(),
+        text: inputValue.trim(),
+        completed: false,
+      }
+      setTodos([...todos, newTodo])
+      setInputValue("")
+    }
+  }
+
+  // Delete todo
+  const deleteTodo = (id: number) => {
+    setTodos(todos.filter((todo) => todo.id !== id))
+  }
+
+  // Toggle completion
+  const toggleComplete = (id: number) => {
+    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)))
+  }
+
+  // Start editing
+  const startEditing = (todo: Todo) => {
+    setEditingId(todo.id)
+    setEditingText(todo.text)
+  }
+
+  // Save edit
+  const saveEdit = () => {
+    if (editingText.trim() && editingId !== null) {
+      setTodos(todos.map((todo) => (todo.id === editingId ? { ...todo, text: editingText.trim() } : todo)))
+      setEditingId(null)
+      setEditingText("")
+    }
+  }
+
+  // Cancel edit
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditingText("")
+  }
+
+  const activeTodos = todos.filter((todo) => !todo.completed).length
+  const completedTodos = todos.filter((todo) => todo.completed).length
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border bg-card">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+          <h1 className="text-3xl font-bold text-foreground">Task Manager</h1>
+          <p className="text-sm text-muted-foreground mt-1">Organize your tasks efficiently</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-8 w-full">
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <Card className="p-4 bg-accent/50">
+            <div className="text-2xl font-bold text-foreground">{activeTodos}</div>
+            <div className="text-sm text-muted-foreground">Active Tasks</div>
+          </Card>
+          <Card className="p-4 bg-accent/50">
+            <div className="text-2xl font-bold text-foreground">{completedTodos}</div>
+            <div className="text-sm text-muted-foreground">Completed</div>
+          </Card>
+        </div>
+
+        {/* Add Todo Form */}
+        <Card className="p-4 mb-6">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Add a new task..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addTodo()
+              }}
+              className="flex-1"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <Button onClick={addTodo} size="icon">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </Card>
+
+        {/* Todo List */}
+        <div className="space-y-2">
+          {todos.length === 0 ? (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">No tasks yet. Add one to get started!</p>
+            </Card>
+          ) : (
+            todos.map((todo) => (
+              <Card key={todo.id} className="p-4 hover:bg-accent/30 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Checkbox checked={todo.completed} onCheckedChange={() => toggleComplete(todo.id)} />
+
+                  {editingId === todo.id ? (
+                    <div className="flex-1 flex gap-2">
+                      <Input
+                        value={editingText}
+                        onChange={(e) => setEditingText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveEdit()
+                          if (e.key === "Escape") cancelEdit()
+                        }}
+                        className="flex-1"
+                        autoFocus
+                      />
+                      <Button onClick={saveEdit} size="icon" variant="ghost" className="h-9 w-9">
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button onClick={cancelEdit} size="icon" variant="ghost" className="h-9 w-9">
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <span
+                        className={`flex-1 text-foreground ${
+                          todo.completed ? "line-through text-muted-foreground" : ""
+                        }`}
+                      >
+                        {todo.text}
+                      </span>
+                      <Button onClick={() => startEditing(todo)} size="icon" variant="ghost" className="h-9 w-9">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => deleteTodo(todo.id)}
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </Card>
+            ))
+          )}
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-card mt-auto">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4">
+          <p className="text-sm text-muted-foreground text-center">Built with Next.js • {new Date().getFullYear()}</p>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }
